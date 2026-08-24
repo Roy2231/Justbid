@@ -1,0 +1,163 @@
+[
+  {
+    "id": "1",
+    "authorId": "acc_demo1",
+    "companyName": "NeuralMesh",
+    "url": "https://neuralmesh.io",
+    "description": "Distributed cloud GPU computing and LLM orchestration pipeline for AI agents.",
+    "offerText": "$15,000 AI Infrastructure & Cloud GPU Credits",
+    "category": "AI Agents & Infrastructure",
+    "worthValue": 17005,
+    "discountCode": "NEURALMESH-INFRA-2026",
+    "createdAt": 1787588101594,
+    "endTime": 1787591701594,
+    "bids": [
+      {
+        "id": "b1",
+        "bidderId": "user_a",
+        "bidderName": "Jordan Blake",
+        "amount": 450,
+        "timestamp": 1787588401594
+      },
+      {
+        "id": "b2",
+        "bidderId": "user_b",
+        "bidderName": "Rachel Sterling",
+        "amount": 1200,
+        "timestamp": 1787589001594
+      }
+    ],
+    "isPaid": false,
+    "status": "approved",
+    "contactEmail": "founders@neuralmesh.io",
+    "winnerId": "user_b"
+  },
+  {
+    "id": "2",
+    "authorId": "acc_demo2",
+    "companyName": "Virallo",
+    "url": "https://virallo.app",
+    "description": "All-in-one marketplace to monetize creator performance and drive viral influencer campaigns.",
+    "offerText": "$10,000 Creator Ads Grant + Lifetime Pro Tier",
+    "category": "Marketing & Advertising",
+    "worthValue": 16000,
+    "discountCode": "VIRALLO-CREATOR-ADS",
+    "createdAt": 1787588701594,
+    "endTime": 1787592301594,
+    "bids": [
+      {
+        "id": "b3",
+        "bidderId": "user_c",
+        "bidderName": "Marcus Vance",
+        "amount": 820,
+        "timestamp": 1787588821594
+      }
+    ],
+    "isPaid": false,
+    "status": "approved",
+    "contactEmail": "team@virallo.app",
+    "winnerId": "user_c"
+  },
+  {
+    "id": "3",
+    "authorId": "acc_demo3",
+    "companyName": "CognitiveOS",
+    "url": "https://cognitiveos.ai",
+    "description": "Your Personal AI Computer. Autonomous tasks, data research, and browser actions.",
+    "offerText": "1-Year Enterprise AI Workspace for 20 seats",
+    "category": "Productivity & Personal Tools",
+    "worthValue": 14028,
+    "discountCode": "COGNITIVE-ENT-20X",
+    "createdAt": 1787587801594,
+    "endTime": 1787591401594,
+    "bids": [
+      {
+        "id": "b4",
+        "bidderId": "user_d",
+        "bidderName": "Chloe Rivera",
+        "amount": 650,
+        "timestamp": 1787588581594
+      }
+    ],
+    "isPaid": false,
+    "status": "approved",
+    "contactEmail": "hello@cognitiveos.ai",
+    "winnerId": "user_d"
+  },
+  {
+    "id": "4",
+    "authorId": "acc_demo4",
+    "companyName": "VectorScout",
+    "url": "https://vectorscout.io",
+    "description": "Next-gen generative engine optimization (GEO) and AI search visibility tracking.",
+    "offerText": "$8,000 Annual GEO Indexing Credits",
+    "category": "SEO & AI Visibility",
+    "worthValue": 9500,
+    "discountCode": "VECTORSCOUT-GEO-8K",
+    "createdAt": 1787588401594,
+    "endTime": 1787592001594,
+    "bids": [
+      {
+        "id": "b5",
+        "bidderId": "user_e",
+        "bidderName": "Lucas Lindqvist",
+        "amount": 320,
+        "timestamp": 1787588941594
+      }
+    ],
+    "isPaid": false,
+    "status": "approved",
+    "contactEmail": "founders@vectorscout.io",
+    "winnerId": "user_e"
+  },
+  {
+    "id": "yywlpnx",
+    "authorId": "user_princemrb89_gmail_com",
+    "companyName": "Ateegnas",
+    "url": "https://ateegnas.com",
+    "description": "An AI native Data Annotation Tool",
+    "offerText": "1 Year  Free",
+    "category": "AI Agents & Infrastructure",
+    "worthValue": 2022,
+    "discountCode": "MANAS-0922",
+    "createdAt": 1787592827582,
+    "endTime": 1787600023333,
+    "bids": [
+      {
+        "id": "iutai8y",
+        "bidderId": "be764700-9cde-4b13-93df-01a15ba1bfe2",
+        "bidderName": "mrbking43",
+        "amount": 5,
+        "timestamp": 1787597219737
+      }
+    ],
+    "isPaid": false,
+    "status": "approved",
+    "contactEmail": "princemrb89@gmail.com"
+  },
+  {
+    "id": "af7dp3z",
+    "authorId": "user_mrbking43_gmail_com",
+    "companyName": "brevity",
+    "url": "https://brevity.com",
+    "description": "an ai native video generation",
+    "offerText": "500$ discount",
+    "category": "AI Media Generation",
+    "worthValue": 500,
+    "discountCode": "PIYUSH-2006",
+    "createdAt": 1787597019229,
+    "endTime": 1787600655156,
+    "bids": [
+      {
+        "id": "b7joy2j",
+        "bidderId": "be764700-9cde-4b13-93df-01a15ba1bfe2",
+        "bidderName": "Piyush Bissoyi",
+        "amount": 5,
+        "timestamp": 1787598466289
+      }
+    ],
+    "isPaid": false,
+    "status": "approved",
+    "contactEmail": "mrbking43@gmail.com"
+  }
+]

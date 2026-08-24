@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // We are using the Express backend (firebase-admin) for all database access to securely handle 
+    // payment logic, email notifications, and hidden discount codes.
+    // Client SDK access is completely disabled.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

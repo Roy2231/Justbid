@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "Auction": {
+      "title": "Auction",
+      "description": "An offer posted by a startup.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "url": { "type": "string" },
+        "description": { "type": "string" },
+        "offerText": { "type": "string" },
+        "category": { "type": "string" },
+        "worthValue": { "type": "number" },
+        "discountCode": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "endTime": { "type": "number" },
+        "winnerId": { "type": "string" },
+        "isPaid": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "contactEmail": { "type": "string" }
+      },
+      "required": ["authorId", "companyName", "url", "description", "offerText", "category", "worthValue", "discountCode", "createdAt", "endTime", "isPaid", "status", "contactEmail"]
+    },
+    "Bid": {
+      "title": "UserBid",
+      "description": "A bid placed on an auction.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "auctionId": { "type": "string" },
+        "bidderId": { "type": "string" },
+        "bidderName": { "type": "string" },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["auctionId", "bidderId", "bidderName", "amount", "timestamp"]
+    }
+  },
+  "firestore": {
+    "auctions": {
+      "schema": { "$ref": "#/entities/Auction" },
+      "description": "Stores all startup offers and auctions."
+    },
+    "auctions/{auctionId}/bids": {
+      "schema": { "$ref": "#/entities/Bid" },
+      "description": "Stores all bids for a specific auction."
+    }
+  }
+}

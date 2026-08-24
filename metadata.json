@@ -1,0 +1,6 @@
+{
+  "name": "JustBid",
+  "description": "A leaderboard where companies bid with startup credits, discounts, and goodies to stay on top.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
