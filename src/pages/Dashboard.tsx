@@ -14,7 +14,7 @@ import {
   ExternalLink, 
   Clock, 
   Tag, 
-  Mail, X 
+  Mail, X, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
 
@@ -24,6 +24,7 @@ export function Dashboard() {
   const [myOffers, setMyOffers] = useState<Auction[]>([]);
   const [myBids, setMyBids] = useState<Auction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [copiedVoucherId, setCopiedVoucherId] = useState<string | null>(null);
   const [dismissedWins, setDismissedWins] = useState<string[]>(() => {
     try {
@@ -45,6 +46,7 @@ export function Dashboard() {
     }
     
     try {
+      setError(null);
       const queryId = user?.uid || localAccountId || localEmail || '';
       const emailQuery = user?.email || localEmail || '';
       const nameQuery = user?.name || localName || '';
@@ -58,8 +60,9 @@ export function Dashboard() {
         setMyOffers(data.myOffers || []);
         setMyBids(data.myBids || []);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load dashboard', err);
+      setError(err?.message || 'Failed to connect to the server');
     } finally {
       setIsLoading(false);
     }
@@ -272,6 +275,21 @@ export function Dashboard() {
         <div className="py-20 text-center text-zinc-400 text-xs">
           <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
           Loading dashboard data...
+        </div>
+      ) : error ? (
+        <div className="py-16 text-center border border-dashed border-red-200 rounded-2xl bg-red-50 p-6">
+          <Flame className="mx-auto text-red-400 mb-2" size={32} />
+          <h3 className="text-base font-bold text-zinc-900 mb-1">Connection Error</h3>
+          <p className="text-xs sm:text-sm text-zinc-500 max-w-sm mx-auto mb-4">
+            {error}. The server might have restarted while you were loading the page.
+          </p>
+          <button 
+            onClick={() => { setIsLoading(true); fetchDashboard(); }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-all"
+          >
+            <RefreshCw size={16} />
+            Try Again
+          </button>
         </div>
       ) : hasNoItems ? (
         <div className="py-16 text-center border border-dashed border-zinc-200 rounded-2xl bg-white/70 p-6">

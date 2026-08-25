@@ -1003,7 +1003,7 @@ async function startServer() {
       checkoutUrl = (session as any).payment_link || (session as any).url || "";
     } catch (e: any) {
       console.log("Dodo payments notice:", e?.message || e?.name || e);
-      return res.status(500).json({ error: "Failed to create payment session" });
+      return res.status(500).json({ error: e?.message || "Failed to create payment session" });
     }
 
     if (!checkoutUrl) {
