@@ -669,6 +669,17 @@ async function startServer() {
     }
 
     const now = Date.now();
+
+    // Remove ended bid offer posts from this user if they post another offer
+    auctions = auctions.filter(a => {
+      const isAuthorMatch = a.authorId === authorId || (a.contactEmail || '').toLowerCase() === email;
+      const isEnded = a.endTime > 0 && now >= a.endTime;
+      if (isAuthorMatch && isEnded) {
+        return false; // Remove ended offer
+      }
+      return true;
+    });
+
     const newAuction: Auction = {
       id: Math.random().toString(36).substring(2, 9),
       authorId,
@@ -952,6 +963,7 @@ async function startServer() {
     if (auction.winnerId !== accountId) {
       return res.status(403).json({ error: "You are not the winner of this auction" });
     }
+
     if (auction.isPaid) {
       return res.status(400).json({ error: "Auction is already paid" });
     }
@@ -963,47 +975,69 @@ async function startServer() {
     try {
       const dodoKey = process.env.DODO_PAYMENTS_API_KEY;
       const productId = process.env.DODO_PRODUCT_ID;
-      if (dodoKey && productId) {
-        const dodo = new DodoPayments({ bearerToken: dodoKey });
-        const appUrl = process.env.APP_URL || 'http://localhost:3000';
-        
-        const session = await dodo.payments.create({
-          billing: { city: "San Francisco", country: "US", state: "CA", street: "123 Market St", zipcode: "94105" },
-          customer: { name: winningBid.bidderName || "Winner", email: "winner@justbid.app" },
-          product_cart: [
-            {
-              product_id: productId,
-              quantity: 1,
-              amount: winningBid.amount * 100
-            }
-          ],
-          payment_link: true,
-          return_url: `${appUrl}/dashboard?payment_success=true&auction_id=${id}`
-        });
-        
-        checkoutUrl = (session as any).payment_link || (session as any).url || "";
+      
+      if (!dodoKey || !productId) {
+        return res.status(500).json({ error: "Payment gateway is not configured. Please contact the administrator." });
       }
+
+      const dodo = new DodoPayments({ bearerToken: dodoKey });
+      const appUrl = process.env.APP_URL || 'http://localhost:3000';
+      
+      const session = await dodo.payments.create({
+        billing: { city: "San Francisco", country: "US", state: "CA", street: "123 Market St", zipcode: "94105" },
+        customer: { name: winningBid.bidderName || "Winner", email: "winner@justbid.app" },
+        product_cart: [
+          {
+            product_id: productId,
+            quantity: 1,
+            amount: winningBid.amount * 100
+          }
+        ],
+        metadata: {
+          auction_id: id
+        },
+        payment_link: true,
+        return_url: `${appUrl}/dashboard?payment_success=true&auction_id=${id}`
+      });
+      
+      checkoutUrl = (session as any).payment_link || (session as any).url || "";
     } catch (e: any) {
       console.log("Dodo payments notice:", e?.message || e?.name || e);
+      return res.status(500).json({ error: "Failed to create payment session" });
     }
 
     if (!checkoutUrl) {
-      // Fallback mock payment link
-      const appUrl = process.env.APP_URL || 'http://localhost:3000';
-      checkoutUrl = `${appUrl}/dashboard?payment_success=true&auction_id=${id}&mock=true`;
+      return res.status(500).json({ error: "Failed to get payment link" });
     }
 
     res.json({ checkoutUrl });
   });
 
-  // Webhook/Callback mock to mark auction as paid
-  app.post("/api/auctions/:id/mark-paid", (req, res) => {
-    const { id } = req.params;
-    const auction = auctions.find(a => a.id === id);
-    if (auction) {
-      auction.isPaid = true;
+  // Real Webhook handler for Dodo Payments
+  app.post("/api/webhooks/dodo", async (req, res) => {
+    try {
+      const event = req.body;
+      const type = event.type || event.event;
+      
+      // Handle payment success
+      if (type === 'payment.succeeded' || type === 'payment.successful' || event.status === 'succeeded' || event.data?.status === 'succeeded') {
+        const metadata = event.data?.metadata || event.metadata || {};
+        const auctionId = metadata.auction_id;
+        
+        if (auctionId) {
+          const auction = auctions.find(a => a.id === auctionId);
+          if (auction && !auction.isPaid) {
+            auction.isPaid = true;
+            saveAuctions(auctions);
+            console.log(`[Webhook] Payment confirmed for auction ${auctionId}`);
+          }
+        }
+      }
+      res.json({ received: true });
+    } catch (e) {
+      console.error("Dodo webhook error:", e);
+      res.status(400).send(`Webhook Error`);
     }
-    res.json({ success: true });
   });
 
   // Vite middleware for development

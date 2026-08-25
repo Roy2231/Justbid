@@ -132,6 +132,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('Supabase signUp notice, activating authenticated session:', error.message);
       }
       const uid = data?.user?.id || 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
+      
+      try {
+        await supabase.from('users').upsert([
+          {
+            id: uid,
+            email: cleanEmail,
+            name: displayName,
+            created_at: new Date().toISOString()
+          }
+        ]);
+      } catch (insertError) {
+        console.warn('Could not save to users table:', insertError);
+      }
+
       const appUser: AppUser = { id: uid, uid, email: cleanEmail, name: displayName };
       setUser(appUser);
       localStorage.setItem('justbid_user_email', cleanEmail);

@@ -14,7 +14,7 @@ import {
   ExternalLink, 
   Clock, 
   Tag, 
-  Mail 
+  Mail, X 
 } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
 
@@ -25,6 +25,13 @@ export function Dashboard() {
   const [myBids, setMyBids] = useState<Auction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedVoucherId, setCopiedVoucherId] = useState<string | null>(null);
+  const [dismissedWins, setDismissedWins] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('justbid_dismissed_wins') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   const localEmail = localStorage.getItem('justbid_user_email');
   const localAccountId = localStorage.getItem('justbid_account_id');
@@ -63,11 +70,10 @@ export function Dashboard() {
     const auctionId = searchParams.get('auction_id');
 
     if (paymentSuccess && auctionId) {
-      fetch(`/api/auctions/${auctionId}/mark-paid`, { method: 'POST' })
-        .then(() => {
-          setSearchParams({});
-          fetchDashboard();
-        });
+      // Payment just returned. The server webhook should have confirmed it.
+      // Remove query params and fetch dashboard to see updated status.
+      setSearchParams({});
+      fetchDashboard();
     } else {
       fetchDashboard();
     }
@@ -93,6 +99,14 @@ export function Dashboard() {
     }
   };
 
+  const handleDismissWin = (auctionId: string) => {
+    setDismissedWins(prev => {
+      const updated = [...prev, auctionId];
+      localStorage.setItem('justbid_dismissed_wins', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const copyVoucher = (id: string, code?: string) => {
     if (!code) return;
     navigator.clipboard.writeText(code);
@@ -113,7 +127,7 @@ export function Dashboard() {
         auction.bids.reduce((p, c) => p.amount > c.amount ? p : c).bidderId === (user?.uid || localAccountId || localEmail) ||
         auction.bids.reduce((p, c) => p.amount > c.amount ? p : c).bidderName === activeName
       ));
-    return isWinner;
+    return isWinner && !dismissedWins.includes(auction.id);
   });
 
   return (
@@ -155,55 +169,59 @@ export function Dashboard() {
             return (
               <div 
                 key={`winner-card-${wonAuction.id}`}
-                className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-zinc-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-emerald-500/30"
+                className="relative overflow-hidden bg-white text-zinc-900 rounded-3xl p-6 sm:p-7 shadow-sm border border-emerald-200"
               >
-                {/* Decorative background glow */}
-                <div className="absolute -top-24 -right-24 w-60 h-60 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
                 <div className="relative z-10">
                   {/* Top Badge */}
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black uppercase tracking-wider">
-                      <Sparkles size={13} className="text-amber-300 animate-spin" />
-                      <span>🎉 Winner Notification</span>
+                    <div className="flex items-center flex-wrap gap-3">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider">
+                        <Sparkles size={13} className="text-amber-500 animate-spin" />
+                        <span>🎉 Winner Notification</span>
+                      </div>
+                      <div className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                        {savings}% Savings • Saved ${(wonAuction.worthValue - highestBid).toLocaleString()}
+                      </div>
                     </div>
-
-                    <div className="text-xs font-bold text-emerald-300 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500/30">
-                      {savings}% Savings • Saved ${(wonAuction.worthValue - highestBid).toLocaleString()}
-                    </div>
+                    <button 
+                      onClick={() => handleDismissWin(wonAuction.id)}
+                      className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-colors shrink-0"
+                      title="Dismiss to claims list"
+                    >
+                      <X size={18} />
+                    </button>
                   </div>
 
                   {/* Main Headline */}
                   <div className="space-y-1 mb-4">
-                    <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                      <Trophy className="text-amber-400 shrink-0" size={24} />
+                    <h2 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-900 flex items-center gap-2">
+                      <Trophy className="text-amber-500 shrink-0" size={24} />
                       Congratulations! You Won the {wonAuction.companyName} Deal!
                     </h2>
-                    <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed max-w-2xl">
-                      Your winning bid of <strong className="text-emerald-400 font-mono font-bold">${highestBid.toLocaleString()}</strong> placed you #1 for <strong className="text-white">{wonAuction.offerText}</strong> (Retail Value: ${wonAuction.worthValue.toLocaleString()}).
+                    <p className="text-zinc-500 text-xs sm:text-sm leading-relaxed max-w-2xl">
+                      Your winning bid of <strong className="text-emerald-600 font-mono font-bold">${highestBid.toLocaleString()}</strong> placed you #1 for <strong className="text-zinc-800">{wonAuction.offerText}</strong> (Retail Value: ${wonAuction.worthValue.toLocaleString()}).
                     </p>
                   </div>
 
                   {/* Action Section: Voucher Revealed or Pay Now */}
                   {wonAuction.isPaid ? (
-                    <div className="mt-5 p-4 sm:p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-emerald-400/30">
+                    <div className="mt-5 p-4 sm:p-5 bg-emerald-50/50 rounded-2xl border border-emerald-100">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                          <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1">
-                            <CheckCircle2 size={13} className="text-emerald-400" /> Your Secret Voucher Code Unlocked
+                          <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                            <CheckCircle2 size={13} className="text-emerald-600" /> Your Secret Voucher Code Unlocked
                           </span>
                           <div className="flex items-center gap-3 mt-1.5">
-                            <code className="font-mono text-xl sm:text-2xl font-black text-amber-300 tracking-wider bg-black/40 px-3 py-1 rounded-xl border border-emerald-500/40">
+                            <code className="font-mono text-xl sm:text-2xl font-black text-emerald-700 tracking-wider bg-white px-3 py-1 rounded-xl border border-emerald-200">
                               {wonAuction.discountCode || 'OFFER-CLAIMED'}
                             </code>
                             <button
                               onClick={() => copyVoucher(wonAuction.id, wonAuction.discountCode)}
-                              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl text-xs transition-all shadow-md active:scale-95"
+                              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-xl text-xs transition-all shadow-sm active:scale-95"
                             >
                               {copiedVoucherId === wonAuction.id ? (
                                 <>
-                                  <Check size={14} className="text-zinc-950" />
+                                  <Check size={14} className="text-emerald-700" />
                                   <span>Copied!</span>
                                 </>
                               ) : (
@@ -215,29 +233,27 @@ export function Dashboard() {
                             </button>
                           </div>
                         </div>
-
-                        <div className="text-xs text-zinc-300 space-y-1">
-                          <p className="font-semibold text-zinc-200">How to redeem:</p>
-                          <p className="text-[11px] text-zinc-400">
-                            Apply this promo voucher code directly on <a href={wonAuction.url} target="_blank" rel="noopener noreferrer" className="text-emerald-400 underline font-medium">{wonAuction.companyName}</a> during checkout or sign up.
+                        <div className="text-xs text-zinc-600 space-y-1">
+                          <p className="font-semibold text-zinc-900">How to redeem:</p>
+                          <p className="text-[11px] text-zinc-500">
+                            Apply this promo voucher code directly on <a href={wonAuction.url} target="_blank" rel="noopener noreferrer" className="text-emerald-600 underline font-medium">{wonAuction.companyName}</a> during checkout or sign up.
                           </p>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-5 p-4 sm:p-5 bg-black/40 backdrop-blur-md rounded-2xl border border-amber-400/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="mt-5 p-4 sm:p-5 bg-zinc-50 rounded-2xl border border-zinc-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
-                        <div className="text-amber-300 text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
+                        <div className="text-amber-600 text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
                           <Clock size={14} /> Next Step: Complete Payment to Unlock Voucher
                         </div>
-                        <p className="text-zinc-300 text-xs mt-1">
-                          Secure your winning price of <strong className="text-emerald-400 font-mono">${highestBid.toLocaleString()}</strong> to reveal the secret discount voucher code immediately.
+                        <p className="text-zinc-500 text-xs mt-1">
+                          Secure your winning price of <strong className="text-emerald-600 font-mono">${highestBid.toLocaleString()}</strong> to reveal the secret discount voucher code immediately.
                         </p>
                       </div>
-
                       <button
                         onClick={() => handlePay(wonAuction.id)}
-                        className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black rounded-xl text-sm transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 shrink-0"
+                        className="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl text-sm transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 shrink-0"
                       >
                         <CreditCard size={16} />
                         <span>Pay ${highestBid.toLocaleString()} & Claim Perk</span>
